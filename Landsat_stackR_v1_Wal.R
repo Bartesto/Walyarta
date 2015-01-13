@@ -1,9 +1,5 @@
 rm(list = ls(all = T))#Clears workspace if required
 
-
-
-
-
 ##STEP 1
 
 
