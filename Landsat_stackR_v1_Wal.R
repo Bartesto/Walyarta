@@ -93,7 +93,7 @@ zone=51
 shp="Walyata_calibration_points_mga51.shp"
 shp.ID="SiteID"
 pr=11174
-option="i35"
+option="ndvi"
 
 ##Step 3
 
