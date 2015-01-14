@@ -13,17 +13,19 @@ ind <- read.csv("Indices_l8ut11174m_160914_USG_utm51pre_stackR.csv",
                 header = TRUE)
 
 glimpse(fd)
-)
-
 
 #works
-fd %>%
-        group_by(SiteID) %>%
-        summarise(
-                avgFC=mean(FCNadirSelected),
-                avgZN=mean(ZenithSelected),
-                avgAE=mean(AerialCanopyCover),
-                avgMR=mean(MuirVegetationClass))
+fd_out <- fd %>%
+                group_by(SiteID) %>%
+                summarise(
+                        avgFC=mean(FCNadirSelected),
+                        avgZN=mean(ZenithSelected),
+                        avgAE=mean(AerialCanopyCover),
+                        avgMR=mean(MuirVegetationClass),
+                        avgTP=mean(Template, na.rm=TRUE))
 
-
+ind_out <- ind %>%
+                  mutate(b234=(-4 * b2) - (b3) + (2 * b4))
+        
+all_data <- inner_join(fd_out, ind_out, by="SiteID")
 
