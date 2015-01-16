@@ -90,7 +90,7 @@ Landsat_stackR<- function(dir, zone, shp, shp.ID, pr, option){
 
 dir="W:\\usgs\\111074\\processing"
 zone=51
-shp="Walyata_calibration_points_mga51.shp"
+shp="Walyata_sites_CVA_coverEst.shp"
 shp.ID="SiteID"
 pr=11174
 option="b6"
