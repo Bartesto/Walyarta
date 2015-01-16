@@ -4,9 +4,9 @@ setwd(paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_",
              "Program\\DATA\\analysis\\20140916\\CVA"))
 
 # Read .cvm file from working directory...
-classes <- 30 #update from lis file
+classes <- 34 #update from lis file
 nbands <- 6
-filename <- "l8ut11174m_160914_USG_utm51pre.cvm"
+filename <- "l8ut11174m_160914_USG_utm51pre_2.cvm"
 filename
 
 # Load file and extract labels
