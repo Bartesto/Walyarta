@@ -9,7 +9,7 @@ library(GGally)
 setwd(paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_",
       "Program\\DATA\\analysis\\20140916\\raw_data"))
 
-fd <- read.csv("Walyarta_All_Field_Data_20140916_forAnalysis.csv",
+fd <- read.csv("Walyarta_All_Field_Data_20140916_MGA51_forAnalysis.csv",
                header = TRUE)
 fd$FieldDate <- as.Date(fd$FieldDate, "%d/%m/%Y")
 
@@ -25,14 +25,15 @@ fd_out <- fd %>%
                         avgFC=mean(FCNadirSelected),
                         avgZN=mean(ZenithSelected),
                         avgAE=mean(AerialCanopyCover),
+                        avgCE=mean(EstimateCover),
                         avgMR=mean(MuirVegetationClass),
                         avgSC=mean(Scode),
                         avgTP=mean(Template, na.rm=TRUE))
 #labels for MUIR
 MRlab <- c("dtm", "lmw", "tm", "otm", "dlg", "tm", "tm", "otm", "tm", "votm",
-  "dsc", "mdhg", "dhg", "otm", "oh", "lg", "tm", "volg", "h", "tm",
+  "dsc", "sm", "dhg", "otm", "oh", "lg", "tm", "volg", "h", "tm",
   "dsd", "otm", "dlg", "votm", "s", "mdhg", "otm", "dtm", "volg", "lhc")
-SClab <- c("m", "m", "m", "m", "g", "m", "m", "m", "m", "m", "o", "g", "g", 
+SClab <- c("m", "m", "m", "m", "g", "m", "m", "m", "m", "m", "o", "m", "g", 
            "m", "o", "g", "m", "g", "o", "m", "o", "m", "g", "m", "o", "g", 
            "m", "m", "g", "o")
 
@@ -50,6 +51,10 @@ all_data <- inner_join(fd_out, ind_out, by="SiteID")
 #pfc1 using zenith and aerial estimate where poss, otherwise 
 all_data <- mutate(all_data, pfc1=ifelse(avgZN != 0, avgZN * avgAE,
                    avgFC))
+
+all_data <- mutate(all_data, pfc2=ifelse(avgZN != 0, avgZN * avgCE,
+                                         avgCE))
+
 #some models
 
 #ndvi
@@ -58,6 +63,7 @@ badsites <- c("Wal_rs_004", "Wal_rs_006", "Wal_rs_014")
 a1 <- filter(a, !(SiteID %in% badsites))
 
 am <- summary(lm(pfc1 ~ ndvi, data = a))
+am2 <- summary(lm(pfc2 ~ ndvi, data = a))
 
 am1 <- summary(lm(pfc1 ~ ndvi, data = a1))
 
@@ -80,8 +86,9 @@ e <- filter(all_data, SClab == "m")
 # e1 <- filter(a, !(SiteID %in% badsites))
 
 em <- summary(lm(pfc1 ~ i35, data = e))
+em2 <- summary(lm(pfc2 ~ i35, data = e))
 
-em1 <- summary(lm(pfc1 ~ i35, data = e1))
+
 
 
 
@@ -127,7 +134,7 @@ table(SClab)
 
 
 #Analysis graphs
-pairs(~avgFC+avgZN+avgAE+avgTP+i35+ndvi+b234, data=all_data,
+pairs(~avgFC+avgZN+avgAE+avgCE+avgTP+pfc1+pfc2+i35+ndvi+b234, data=all_data,
       main="Pairs Scatterplot for Walyarta Data")
 
 scatterplot.matrix(~avgFC+avgZN+avgAE+avgTP+i35+ndvi+b234|MRlab,
@@ -155,8 +162,18 @@ ggplot(all_data, aes(x= ndvi, y= pfc1, colour = SClab, label = SiteID)) +
         geom_point(shape=1) +
         geom_text()+
         geom_smooth(method=lm, se=FALSE)
+
+ggplot(all_data, aes(x= ndvi, y= pfc2, colour = SClab, label = SiteID)) +
+        geom_point(shape=1) +
+        geom_text()+
+        geom_smooth(method=lm, se=FALSE)
 #i35
 ggplot(all_data, aes(x= i35, y= pfc1, colour = SClab, label = SiteID)) +
+        geom_point(shape=1) +
+        geom_text()+
+        geom_smooth(method=lm, se=FALSE)
+
+ggplot(all_data, aes(x= i35, y= pfc2, colour = SClab, label = SiteID)) +
         geom_point(shape=1) +
         geom_text()+
         geom_smooth(method=lm, se=FALSE)
@@ -167,6 +184,10 @@ ggplot(all_data, aes(x= b234, y= pfc1, colour = SClab, label = SiteID)) +
         geom_text()+
         geom_smooth(method=lm, se=FALSE)
 
+ggplot(all_data, aes(x= b234, y= pfc2, colour = SClab, label = SiteID)) +
+        geom_point(shape=1) +
+        geom_text()+
+        geom_smooth(method=lm, se=FALSE)
 
 #Graphs to keep 
 setwd(paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_",
