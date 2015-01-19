@@ -6,8 +6,13 @@ library(car)
 library(ggplot2)
 library(GGally)
 
-setwd(paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_",
-      "Program\\DATA\\analysis\\20140916\\raw_data"))
+data_loc <- paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_",
+                   "Program\\DATA\\analysis\\20140916\\raw_data")
+
+graph_loc <- paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_Program\\",
+                    "DATA\\analysis\\20140916\\Wal_git\\Walyarta\\graphs")
+
+setwd(data_loc)
 
 # fd <- read.csv("Walyarta_All_Field_Data_20140916_MGA51_forAnalysis.csv",
 #                header = TRUE)
@@ -50,7 +55,10 @@ soil <- c("n", "g", "g", "g", "g", "r", "g", "r", "g", "r", "g", "r", "r",
 ind_out <- ind %>%
                   mutate(b234=(-4 * b2) - (b3) + (2 * b4),
                          redI=(-2 * b1) + (b4) + (b6),
-                         greyI=(-2 * b1) +(b3) - (b5))
+                         greyI=(-2 * b1) +(b3) - (b5),
+                         b15=(b1+b5),
+                         b1m35=(b1-b3+b5),
+                         b135=(b1+b3+b5))
 
 ind_out <- cbind(ind_out, soil)
 
@@ -73,9 +81,19 @@ am <- lm(cover ~ redI, data = a)
 #grey
 b <- filter(ind_out, soil != "r")
 
-bm <- lm(cover ~ greyI, data = b)
+bm <- lm(cover ~ greyI, data = b) # 0.589
 
-bm2 <- lm(cover ~ b3, data = b) #band 3
+bm2 <- lm(cover ~ b3, data = b) # 0.6319
+
+bm3 <- lm(cover ~ i35, data = b) # 0.6668
+
+bm4 <- lm(cover ~ b15, data = b) # 0.6364
+
+bm5 <- lm(cover ~ b1, data=b) # 0.4854
+
+bm6 <- lm(cover ~ b1m35, data=b) # 0.626
+
+bm7 <- lm(cover ~ b135, data=b) # 0.639
 
 
 lm_eqn = function(m) {
@@ -96,29 +114,79 @@ lm_eqn = function(m) {
 #Analysis graphs
 
 #RED
+setwd(graph_loc)
+
+#red Index
 ggplot(filter(ind_out, soil != "g"), aes(x= redI, y= cover, label = siteID)) +
         geom_point(shape=1) +
+        xlab("red index")+
         geom_smooth(method=lm, se=FALSE) +
         annotate("text", x = 100, y = 75, label = lm_eqn(am), colour="black", 
-                 size = 5, parse=TRUE)#+
+                 size = 3, parse=TRUE) +
+        ggsave("red_index.png", width=6, height=4, dpi=400)
         #geom_text()
 
 #GREY
 ggplot(filter(ind_out, soil != "r"), aes(x= greyI, y= cover, label = siteID)) +
         geom_point(shape=1) +
+        xlab("grey index")+
         geom_smooth(method=lm, se=FALSE) +
-        annotate("text", x = -275, y = 75, label = lm_eqn(bm), colour="black", 
-                 size = 5, parse=TRUE) +
-        geom_text()
+        annotate("text", x = -250, y = 75, label = lm_eqn(bm), colour="black", 
+                 size = 3, parse=TRUE) +
+        ggsave("grey_index.png", width=6, height=4, dpi=400)
 
 #B3
 ggplot(filter(ind_out, soil != "r"), aes(x= b3, y= cover, label = siteID)) +
         geom_point(shape=1) +
+        xlab("band 3")+
         geom_smooth(method=lm, se=FALSE) +
         annotate("text", x = 60, y = 75, label = lm_eqn(bm2), colour="black", 
-                 size = 5, parse=TRUE) #+
-        #geom_text()
+                 size = 3, parse=TRUE) +
+        ggsave("band_3.png", width=6, height=4, dpi=400)
+#i35
+ggplot(filter(ind_out, soil != "r"), aes(x= i35, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("band 3 + band 5")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 100, y = 75, label = lm_eqn(bm3), colour="black", 
+                 size = 3, parse=TRUE) +
+        ggsave("i35.png", width=6, height=4, dpi=400)
 
+#b1 + b5
+ggplot(filter(ind_out, soil != "r"), aes(x= b15, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("band 1 + band 5")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 225, y = 75, label = lm_eqn(bm4), colour="black", 
+                 size = 3, parse=TRUE) +
+        ggsave("b15.png", width=6, height=4, dpi=400)
+
+#b1
+ggplot(filter(ind_out, soil != "r"), aes(x= b1, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("band 1")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 75, y = 75, label = lm_eqn(bm5), colour="black", 
+                 size = 3, parse=TRUE) +
+        ggsave("b1.png", width=6, height=4, dpi=400)
+
+#b1m35
+ggplot(filter(ind_out, soil != "r"), aes(x= b1m35, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("band 1 - band 3 + band 5")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 160, y = 75, label = lm_eqn(bm6), colour="black", 
+                 size = 3, parse=TRUE) +
+        ggsave("b1m35.png", width=6, height=4, dpi=400)
+
+#b135
+ggplot(filter(ind_out, soil != "r"), aes(x= b135, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("band 1 + band 3 + band 5")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 275, y = 75, label = lm_eqn(bm7), colour="black", 
+                 size = 3, parse=TRUE) +
+        ggsave("b135.png", width=6, height=4, dpi=400)
 
 
 
