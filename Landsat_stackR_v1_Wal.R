@@ -93,7 +93,7 @@ zone=51
 shp="Walyata_sites_CVA_coverEst.shp"
 shp.ID="SiteID"
 pr=11174
-option="b6"
+option="ndvi"
 
 ##Step 3
 
