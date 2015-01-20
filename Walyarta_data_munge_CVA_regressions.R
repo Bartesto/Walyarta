@@ -14,41 +14,47 @@ graph_loc <- paste0("Z:\\DEC\\Eighty_Mile_Beach_and_Walyarta_Conservation_Progra
 
 setwd(data_loc)
 
-# fd <- read.csv("Walyarta_All_Field_Data_20140916_MGA51_forAnalysis.csv",
-#                header = TRUE)
-# fd$FieldDate <- as.Date(fd$FieldDate, "%d/%m/%Y")
+fd <- read.csv("Walyarta_All_Field_Data_20140916_MGA51_forAnalysis.csv",
+               header = TRUE)
+fd$FieldDate <- as.Date(fd$FieldDate, "%d/%m/%Y")
 
 ind <- read.csv("Indices_l8ut11174m_160914_USG_utm51pre_stackR_plus_testsites.csv",
                 header = TRUE)
 
+ind2 <- read.csv("Indices_l8ut11174m_160914_USG_utm51pre_stackR.csv",
+                   header = TRUE)
+
 #glimpse(fd)
 
 #Field data munging
-# fd_out <- fd %>%
-#                 group_by(SiteID) %>%
-#                 summarise(
-#                         avgFC=mean(FCNadirSelected),
-#                         avgZN=mean(ZenithSelected),
-#                         avgAE=mean(AerialCanopyCover),
-#                         avgCE=mean(EstimateCover),
-#                         avgMR=mean(MuirVegetationClass),
-#                         avgSC=mean(Scode),
-#                         avgTP=mean(Template, na.rm=TRUE))
+fd_out <- fd %>%
+                group_by(SiteID) %>%
+                summarise(
+                        avgFC=mean(FCNadirSelected),
+                        avgZN=mean(ZenithSelected),
+                        avgAE=mean(AerialCanopyCover),
+                        avgCE=mean(EstimateCover),
+                        avgMR=mean(MuirVegetationClass),
+                        avgSC=mean(Scode),
+                        avgTP=mean(Template, na.rm=TRUE))
 #labels for MUIR
-# MRlab <- c("dtm", "lmw", "tm", "otm", "dlg", "tm", "tm", "otm", "tm", "votm",
-#   "dsc", "sm", "dhg", "otm", "oh", "lg", "tm", "volg", "h", "tm",
-#   "dsd", "otm", "dlg", "votm", "s", "mdhg", "otm", "dtm", "volg", "lhc", "test", 
-#   "test", "test", "test")
-# SClab <- c("m", "m", "m", "m", "g", "m", "m", "m", "m", "m", "o", "m", "g", 
-#            "m", "o", "g", "m", "g", "o", "m", "o", "m", "g", "m", "o", "g", 
-#            "m", "m", "g", "o", "t", "t", "t", "t")
+MRlab <- c("dtm", "lmw", "tm", "otm", "dlg", "tm", "tm", "otm", "tm", "votm",
+  "dsc", "sm", "dhg", "otm", "oh", "lg", "tm", "volg", "h", "tm",
+  "dsd", "otm", "dlg", "votm", "s", "mdhg", "otm", "dtm", "volg", "lhc")
+SClab <- c("m", "m", "m", "m", "g", "m", "m", "m", "m", "m", "o", "m", "g", 
+           "m", "o", "g", "m", "g", "o", "m", "o", "m", "g", "m", "o", "g", 
+           "m", "m", "g", "o")
+soil2 <-  c("n", "g", "g", "g", "g", "r", "g", "r", "g", "r", "g", "r", "r", 
+            "r", "r", "g", "g", "g", "r", "g", "g", "g", "n", "g", "g", "r",
+            "r", "g", "g", "r")
+
 soil <- c("n", "g", "g", "g", "g", "r", "g", "r", "g", "r", "g", "r", "r", 
           "r", "r", "g", "g", "g", "r", "g", "g", "g", "n", "g", "g", "r",
           "r", "g", "g", "r", "r", "r", "r", "r")
 
 
 
-#fd_out <- cbind(fd_out, MRlab, SClab, soil)
+fd_out <- cbind(fd_out, MRlab, SClab, soil2)
 
 
 #Index from image munging
@@ -62,21 +68,30 @@ ind_out <- ind %>%
 
 ind_out <- cbind(ind_out, soil)
 
-#Combining datasets
-#all_data <- inner_join(fd_out, ind_out, by="SiteID")
+#Combining datasets just for comparison WITHOUT test sites
+all_data <- inner_join(fd_out, ind2, by="SiteID")
 #pfc1 using zenith and aerial estimate where poss, otherwise 
-# all_data <- mutate(all_data, pfc1=ifelse(avgZN != 0, avgZN * avgAE,
-#                    avgFC))
-# 
-# all_data <- mutate(all_data, pfc2=ifelse(avgZN != 0, avgZN * avgCE,
-#                                          avgCE))
+all_data <- mutate(all_data, pfc1=ifelse(avgZN != 0, avgZN * avgAE,
+                   avgFC))
+
+all_data <- mutate(all_data, pfc2=ifelse(avgZN != 0, avgZN * avgCE,
+                                         avgCE))
+
+all_data <- mutate(all_data, pfc3=ifelse(avgZN != 0, (1-avgZN) * avgCE,
+                                         avgCE))
 
 #some models
 
 #red
 a <- filter(ind_out, soil != "g")
 
+
 am <- lm(cover ~ redI, data = a)
+
+
+#all sites
+am2 <- lm(cover ~ redI, data = ind_out)
+am3 <- lm(cover ~ i35, data = ind_out)
 
 #grey
 b <- filter(ind_out, soil != "r")
@@ -95,6 +110,12 @@ bm6 <- lm(cover ~ b1m35, data=b) # 0.626
 
 bm7 <- lm(cover ~ b135, data=b) # 0.639
 
+#models for NO TEST sites
+cm <- lm(pfc1 ~ i35, data = all_data)
+cm2 <- lm(pfc2 ~ i35, data = all_data)
+cm3 <- lm(avgCE ~ i35, data = all_data)
+cm4 <- lm(pfc3 ~ i35, data = all_data)
+
 
 lm_eqn = function(m) {
         
@@ -111,6 +132,30 @@ lm_eqn = function(m) {
         as.character(as.expression(eq));                 
 }
 
+
+#graphs for NO SITES
+ggplot(all_data, aes(x= i35, y= pfc1)) +
+        geom_point(shape=1) +
+        xlab("i35 index")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 100, y = 30, label = lm_eqn(cm), colour="black", 
+                 size = 5, parse=TRUE)
+
+ggplot(all_data, aes(x= i35, y= pfc2)) +
+        geom_point(shape=1) +
+        xlab("i35 index")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 100, y = 50, label = lm_eqn(cm2), colour="black", 
+                 size = 5, parse=TRUE)
+
+ggplot(all_data, aes(x= i35, y= avgCE)) +
+        geom_point(shape=1) +
+        xlab("i35 index")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 100, y = 75, label = lm_eqn(cm3), colour="black", 
+                 size = 5, parse=TRUE)
+
+
 #Analysis graphs
 
 #RED
@@ -125,6 +170,22 @@ ggplot(filter(ind_out, soil != "g"), aes(x= redI, y= cover, label = siteID)) +
                  size = 3, parse=TRUE) +
         ggsave("red_index.png", width=6, height=4, dpi=400)
         #geom_text()
+
+#red index all sites
+ggplot(ind_out, aes(x= redI, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("red index")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 100, y = 75, label = lm_eqn(am2), colour="black", 
+                 size = 3, parse=TRUE)
+
+#grey i35 all sites
+ggplot(ind_out, aes(x= i35, y= cover, label = siteID)) +
+        geom_point(shape=1) +
+        xlab("i35 index")+
+        geom_smooth(method=lm, se=FALSE) +
+        annotate("text", x = 100, y = 75, label = lm_eqn(am2), colour="black", 
+                 size = 3, parse=TRUE)
 
 #GREY
 ggplot(filter(ind_out, soil != "r"), aes(x= greyI, y= cover, label = siteID)) +
